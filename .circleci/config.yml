@@ -23,11 +23,16 @@ jobs:
   build:
     docker:
       - image: circleci/node:8.11.2-stretch-browsers
+          environment:
+            - ANSI_VERSION: 1.2.3
     steps:
       - checkout
       - run:
           name: update-npm
           command: 'sudo npm install -g npm@latest'
+      - run:
+          name: check_env_variable
+          command: echo $ANSI_VERSION
       - restore-cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
