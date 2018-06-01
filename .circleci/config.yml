@@ -1,59 +1,62 @@
 version: 2
 jobs:
-  # preparation:
-  #   docker:
-  #     - image: circleci/node:8.11.2-stretch-browsers
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: update-npm
-  #         command: 'sudo npm install -g npm@latest'
-  #     - restore-cache:
-  #         key: dependency-cache-{{ checksum "package.json" }}
-  #     - run:
-  #         name: install-npm-wee
-  #         command: npm install
-  #     - save-cache:
-  #         key: dependency-cache-{{ checksum "package.json" }}
-  #         paths:
-  #           - ./node_modules
-  #     - run:
-  #         name: test
-  #         command: npm test
-  build:
+  preparation:
     docker:
       - image: circleci/node:8.11.2-stretch-browsers
-          environment:
-            - ANSI_VERSION: 1.2.3
     steps:
       - checkout
       - run:
-          name: update-npm
-          command: 'sudo npm install -g npm@latest'
-      - run:
-          name: check_env_variable
-          command: echo $ANSI_VERSION
+          name: update-yarn
+          command: 'sudo yarn global add yarn@latest'
       - restore-cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
-          name: install-npm-wee
-          command: npm install
+          name: install-yarn-wee
+          command: yarn install
       - save-cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
             - ./node_modules
       - run:
           name: test
-          command: npm test
-      # - run:
-      #     name: code-coverage
-      #     command: './node_modules/.bin/nyc report --reporter=text-lcov'
+          command: yarn test
+  build:
+    docker:
+      - image: circleci/node:8.11.2-stretch-browsers
+    environment:
+      - ANSI_VERSION: 1.2.3
+    steps:
+      - checkout
+      - run:
+          name: update-yarn
+          command: 'sudo yarn global add yarn@latest'
+      - run:
+          name: check_env_variable
+          command: echo $ANSI_VERSION
+      - run:
+          name: echo env
+          command: echo {{ .Environment.ANSI_VERSION }}
+      - restore-cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: install-yarn-wee
+          command: yarn install
+      - save-cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run:
+          name: test
+          command: yarn test
+      - run:
+          name: code-coverage
+          command: yarn run test --coverage
       - store-artifacts:
           path: test-result.xml
           prefix: tests
-      # - store-artifacts:
-      #     path: coverage
-      #     prefix: coverage
+      - store-artifacts:
+          path: coverage
+          prefix: coverage
       # special step to upload test results for display in Test Summary
       - store-test-results:
           path: test-results.xml
@@ -64,8 +67,8 @@ jobs:
   #   steps:
   #     - checkout
   #     - run:
-  #         name: update-npm
-  #         command: 'sudp npm install -g npm@latest'
+  #         name: update-yarn
+  #         command: 'sudp yarn install -g yarn@latest'
 workflows:
   version: 2
   build_and_test:
