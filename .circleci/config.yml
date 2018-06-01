@@ -1,0 +1,49 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8.11.2-stretch-browsers
+    steps:
+      - checkout
+      - run:
+          name: update-npm
+          command: 'sudo npm install -g npm@latest'
+      - restore-cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: install-npm-wee
+          command: npm install
+      - save-cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run:
+          name: test
+          command: npm test
+      - run:
+          name: code-coverage
+          command: './node_modules/.bin/nyc report --reporter=text-lcov'
+      - store-artifacts:
+          path: test-result.xml
+          prefix: tests
+      - store-artifacts:
+          path: coverage
+          prefix: coverage
+      # special step to upload test results for display in Test Summary
+      - store-test-results:
+          path: test-results.xml
+      
+  # test:
+  #   docker:
+  #     - image: circleci/node:8.11.2-stretch-browsers
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: update-npm
+  #         command: 'sudp npm install -g npm@latest'
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
+      # - test
